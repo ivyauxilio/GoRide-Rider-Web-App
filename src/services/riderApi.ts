@@ -3,6 +3,9 @@ import type {
   ApiEnvelope,
   RiderDashboard,
   DeliveryOffer,
+  RiderEarnings,
+  DeliveryHistoryItem,
+  PaginatedDeliveryHistory,
 } from "../types/rider";
 
 export const riderApi = {
@@ -67,6 +70,25 @@ export const riderApi = {
   confirmDelivery: async (deliveryId: number) => {
     const response = await api.patch(`/deliveries/${deliveryId}/complete`);
     return response.data;
+  },
+  earnings: async (): Promise<RiderEarnings> => {
+    const response = await api.get<{
+      success: boolean;
+      data: RiderEarnings;
+    }>("/earnings");
+
+    return response.data.data;
+  },
+
+  deliveryHistory: async (page = 1): Promise<PaginatedDeliveryHistory> => {
+    const response = await api.get<{
+      success: boolean;
+      data: PaginatedDeliveryHistory;
+    }>("/deliveries/history", {
+      params: { page },
+    });
+
+    return response.data.data;
   },
 };
 

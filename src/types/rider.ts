@@ -90,3 +90,27 @@ export interface ApiEnvelope<T> {
   data: T;
   message?: string;
 }
+
+export interface RiderEarnings {
+  today: number;
+  this_week: number;
+  this_month: number;
+  total_earnings: number;
+  completed_deliveries: number;
+}
+
+export interface DeliveryHistoryItem {
+  delivery_id: number;
+  status: string;
+  rider_earnings: number | string | null;
+  delivered_at: string | null;
+  rating: number | null;
+  review: string | null;
+}
+
+export interface PaginatedDeliveryHistory {
+  current_page: number;
+  data: DeliveryHistoryItem[];
+  last_page: number;
+  total: number;
+}

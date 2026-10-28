@@ -6,6 +6,8 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import DeliveryOffersPage from "./pages/DeliveryOffersPage";
+import RiderEarningsPage from "./pages/RiderEarningsPage";
+import RiderDeliveryHistoryPage from "./pages/RiderDeliveryHistoryPage";
 
 export default function App() {
   return (
@@ -19,6 +21,12 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="/offers" element={<DeliveryOffersPage />} />
+              <Route path="/earnings" element={<RiderEarningsPage />} />
+
+              <Route
+                path="/delivery-history"
+                element={<RiderDeliveryHistoryPage />}
+              />
             </Route>
           </Route>
 

@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Clock3,
   Bike,
+  Clock,
 } from "lucide-react";
 
 import { riderApi } from "../services/riderApi";
@@ -314,8 +315,8 @@ export default function DeliveryOffersPage() {
     <div className="mx-auto max-w-3xl space-y-5 p-5 pb-28">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Delivery Offers</h1>
+        <div className="flex flex-col items-start">
+          <h2 className="text-base font-bold text-gray-900">Delivery Offers</h2>
 
           <p className="mt-1 text-sm text-gray-500">
             View available deliveries and assigned offers.
@@ -466,29 +467,52 @@ export default function DeliveryOffersPage() {
         </div>
       ) : visibleOffers.length === 0 ? (
         /* Empty state */
-        <div className="rounded-2xl bg-white px-6 py-16 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
-            <Package size={32} className="text-gray-400" />
+
+        <div className="rounded-2xl border border-gray-100 bg-white px-5 py-12 text-center shadow-sm sm:px-8 sm:py-16">
+          {/* Icon */}
+          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-50 ring-1 ring-emerald-100/80">
+            <Package size={36} strokeWidth={1.6} className="text-emerald-600" />
           </div>
 
-          <h2 className="text-lg font-semibold text-gray-900">
-            No Available Deliveries
-          </h2>
+          <div className="flex flex-col justify-center items-center">
+            {/* Message */}
+            <h2 className="text-xl font-bold tracking-tight text-gray-900">
+              No deliveries available
+            </h2>
 
-          <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-gray-500">
-            No delivery jobs are available right now. Check again later for new
-            requests.
-          </p>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
+              You're all caught up! <br /> Check back soon for new delivery
+              request.
+            </p>
+          </div>
+          {/* Helpful hint */}
+          <div className="mx-auto mt-6 flex max-w-sm items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 text-left">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
+              <Clock size={18} className="text-gray-500" />
+            </div>
 
+            <div>
+              <p className="text-sm font-medium text-gray-700">Stay ready</p>
+              <p className="mt-0.5 text-xs leading-5 text-gray-500">
+                New delivery requests may arrive anytime.
+              </p>
+            </div>
+          </div>
+
+          {/* Refresh action */}
           <button
             type="button"
             onClick={() => void refreshOffers()}
             disabled={refreshing}
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {refreshing && <RefreshCw size={16} className="animate-spin" />}
-            {refreshing ? "Refreshing..." : "Refresh Offers"}
+            <RefreshCw size={17} className={refreshing ? "animate-spin" : ""} />
+            {refreshing ? "Refreshing offers..." : "Refresh Offers"}
           </button>
+
+          <p className="mt-3 text-xs text-gray-400">
+            Tap to check for new delivery requests
+          </p>
         </div>
       ) : (
         /* Offers list */

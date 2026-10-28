@@ -9,6 +9,7 @@ import {
   RefreshCw,
   AlertCircle,
   Truck,
+  MapPin,
 } from "lucide-react";
 
 import { riderApi } from "../services/riderApi";
@@ -174,27 +175,101 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-5 pb-28">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm text-gray-500">Welcome back,</p>
 
-          <h1 className="text-2xl font-bold">{riderName}</h1>
+      <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+        {/* Subtle brand accent */}
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-400" />
 
-          <p className="mt-1 text-sm text-gray-500">
-            {[rider.city, rider.province].filter(Boolean).join(", ") ||
-              "GoRide Rider"}
-          </p>
+        <div className="flex items-center justify-between gap-4">
+          {/* Rider information */}
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            {/* <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 sm:h-14 sm:w-14">
+              <Bike size={27} strokeWidth={1.8} />
+            </div> */}
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-purple-50 text-emerald-700 sm:h-14 sm:w-14">
+              <img
+                src="/icons/icon-192.png"
+                alt="Delivery App Logo"
+                className="h-full w-full object-contain p-1"
+              />
+            </div>
+            <div className="min-w-0 flex flex-col items-start">
+              <p className="text-sm font-medium text-gray-500">Welcome back,</p>
+
+              <h4 className="mt-0.5 truncate text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+                {riderName}
+              </h4>
+
+              <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-gray-500">
+                <MapPin size={14} className="shrink-0 text-emerald-600" />
+                <span className="truncate">
+                  {[rider.city, rider.province].filter(Boolean).join(", ") ||
+                    "Delivery Rider"}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* Refresh dashboard */}
+          <button
+            type="button"
+            onClick={() => void refreshDashboard()}
+            disabled={refreshing}
+            aria-label="Refresh dashboard"
+            title="Refresh dashboard"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw size={19} className={refreshing ? "animate-spin" : ""} />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => void refreshDashboard()}
-          disabled={refreshing}
-          aria-label="Refresh dashboard"
-          className="rounded-xl bg-white p-3 shadow-sm disabled:opacity-50"
-        >
-          <RefreshCw size={19} className={refreshing ? "animate-spin" : ""} />
-        </button>
+        {/* Rider status */}
+        <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span
+                className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-50 ${
+                  rider.is_online ? "bg-green-400" : "bg-gray-400"
+                }`}
+              />
+              <span
+                className={`relative inline-flex h-2.5 w-2.5 rounded-full  ${
+                  rider.is_online ? "bg-emerald-500" : "bg-gray-500"
+                }`}
+              />
+            </span>
+            <span className="text-xs font-medium text-gray-600">
+              {rider.is_online ? "You're Online" : "You're Offline"}
+            </span>
+          </div>
+          {updating && (
+            <span className="text-xs font-medium text-emerald-600">
+              Updating availability...
+            </span>
+          )}
+          {refreshing && (
+            <span className="text-xs font-medium text-emerald-600">
+              Updating...
+            </span>
+          )}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={Boolean(rider.is_online)}
+            aria-label="Rider availability"
+            disabled={updating || (!Boolean(rider.is_online) && !canGoOnline)}
+            onClick={() => void toggleOnline()}
+            className={`relative h-9 w-16 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-50 ${
+              rider.is_online ? "bg-green-400" : "bg-gray-400"
+            }`}
+          >
+            <span
+              className={`absolute top-1 h-7 w-7 rounded-full bg-white shadow transition-all ${
+                rider.is_online ? "left-8" : "left-1"
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Error */}
@@ -212,15 +287,15 @@ export default function DashboardPage() {
       <section className="rounded-2xl bg-primary p-6 text-white">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <div className="mb-2 flex items-center gap-2">
+            {/* <div className="mb-2 flex items-center gap-2">
               <Bike size={22} />
 
               <span className="text-sm text-white/80">Rider Availability</span>
-            </div>
-
+            </div> */}
+            {/* 
             <h2 className="text-2xl font-bold">
               {rider.is_online ? "You're Online" : "You're Offline"}
-            </h2>
+            </h2> */}
 
             <p className="mt-1 text-sm text-white/80">
               {rider.is_online
@@ -237,7 +312,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <button
+          {/* <button
             type="button"
             role="switch"
             aria-checked={Boolean(rider.is_online)}
@@ -253,12 +328,12 @@ export default function DashboardPage() {
                 rider.is_online ? "left-8" : "left-1"
               }`}
             />
-          </button>
+          </button> */}
         </div>
 
-        {updating && (
+        {/* {updating && (
           <p className="mt-3 text-sm text-white/80">Updating availability...</p>
-        )}
+        )} */}
 
         {!rider.is_online && rider.status === "approved" && (
           <p className="mt-3 text-sm text-yellow-200">
