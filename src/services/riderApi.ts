@@ -67,8 +67,19 @@ export const riderApi = {
     const response = await api.patch(`/deliveries/${deliveryId}/start`);
     return response.data;
   },
-  confirmDelivery: async (deliveryId: number) => {
-    const response = await api.patch(`/deliveries/${deliveryId}/complete`);
+  // confirmDelivery: async (deliveryId: number) => {
+  //   const response = await api.patch(`/deliveries/${deliveryId}/complete`);
+  //   return response.data;
+  // },
+  confirmDelivery: async (
+    deliveryId: number,
+    payload: { delivery_pin?: string } = {},
+  ) => {
+    const response = await api.patch(
+      `/deliveries/${deliveryId}/complete`,
+      payload,
+    );
+    console.log("data", response.data);
     return response.data;
   },
   earnings: async (): Promise<RiderEarnings> => {

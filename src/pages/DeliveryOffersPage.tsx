@@ -14,6 +14,7 @@ import {
 import { riderApi } from "../services/riderApi";
 import { getApiError } from "../services/api";
 import type { DeliveryOffer } from "../types/rider";
+import DeliveryPinModal from "../components/DeliveryPinModal";
 
 type OfferAction = "accept" | "decline" | "claim";
 
@@ -29,6 +30,8 @@ type ActiveDelivery = {
   service_type?: string | null;
   pickup_address?: string | null;
   dropoff_address?: string | null;
+  delivery_pin_required: boolean | null;
+  delivery_pin: string | null;
 };
 
 const peso = (value: number | string | null | undefined) => {
@@ -91,6 +94,13 @@ export default function DeliveryOffersPage() {
     [],
   );
 
+  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [selectedDeliveryId, setSelectedDeliveryId] = useState<number | null>(
+    null,
+  );
+  const [deliveryPin, setDeliveryPin] = useState("");
+  const [pinError, setPinError] = useState("");
+
   // Keep newly accepted jobs visible even if the offers API removes them.
   // For persistence across reloads, fetch assigned jobs from a rider deliveries API.
   const [acceptedJobs, setAcceptedJobs] = useState<DeliveryOffer[]>([]);
@@ -127,6 +137,8 @@ export default function DeliveryOffersPage() {
       const response = await riderApi.activeDeliveries();
 
       const deliveries = extractActiveDeliveries(response);
+
+      console.log("deliveries", deliveries);
 
       setActiveDeliveries(deliveries);
     } catch (err) {
@@ -274,25 +286,85 @@ export default function DeliveryOffersPage() {
       return;
     }
 
+    setError("");
+    setMessage("");
+    setPinError("");
+
+    // Find delivery in the current active deliveries.
+    const delivery = activeDeliveries.find(
+      (item) => item.delivery_id === deliveryId,
+    );
+
+    if (!delivery) {
+      setError("Delivery not found. Please refresh and try again.");
+      return;
+    }
+
+    const pinRequired = delivery.delivery_pin_required;
+
+    // PIN setting must be explicitly true or false.
+    if (pinRequired !== true && pinRequired !== false) {
+      setError(
+        "Unable to determine PIN requirements. Please refresh the delivery.",
+      );
+      return;
+    }
+
+    // PIN is enabled: ask the rider for the customer's PIN.
+    if (pinRequired === true) {
+      setSelectedDeliveryId(deliveryId);
+      setDeliveryPin("");
+      setPinModalOpen(true);
+      return;
+    }
+
+    // PIN disabled: complete without a PIN.
+    await submitDeliveryConfirmation(deliveryId);
+  };
+
+  const submitDeliveryConfirmation = async (
+    deliveryId: number,
+    pin?: string,
+  ) => {
+    if (completingDeliveryId !== null || processingRef.current) {
+      return;
+    }
+
+    processingRef.current = true;
     setCompletingDeliveryId(deliveryId);
     setError("");
+    setPinError("");
     setMessage("");
 
     try {
-      await riderApi.confirmDelivery(deliveryId);
+      await riderApi.confirmDelivery(
+        deliveryId,
+        pin ? { delivery_pin: pin } : {},
+      );
 
       setMessage("Delivery completed successfully!");
 
-      // Remove any temporary accepted-job entry.
+      setPinModalOpen(false);
+      setSelectedDeliveryId(null);
+      setDeliveryPin("");
+
+      // Remove temporary accepted-job entry.
       setAcceptedJobs((previous) =>
         previous.filter((offer) => offer.delivery?.delivery_id !== deliveryId),
       );
 
-      // Reload the offers and active deliveries.
+      // Reload offers and active deliveries.
       await Promise.all([loadOffers(), loadActiveDeliveries()]);
     } catch (err) {
-      setError(getApiError(err));
+      const errorMessage = getApiError(err);
+
+      if (pinModalOpen || pin) {
+        setPinError(errorMessage);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
+      processingRef.current = false;
       setCompletingDeliveryId(null);
     }
   };
@@ -436,9 +508,10 @@ export default function DeliveryOffersPage() {
                 <button
                   type="button"
                   disabled={completingDeliveryId !== null}
-                  onClick={() =>
-                    void handleConfirmDelivery(delivery.delivery_id)
-                  }
+                  // onClick={() =>
+                  //   void handleConfirmDelivery(delivery.delivery_id)
+                  // }
+                  onClick={() => handleConfirmDelivery(delivery.delivery_id)}
                   className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {completingDeliveryId === delivery.delivery_id ? (
@@ -748,6 +821,25 @@ export default function DeliveryOffersPage() {
           })}
         </div>
       )}
+      <DeliveryPinModal
+        open={pinModalOpen}
+        deliveryId={selectedDeliveryId ?? 0}
+        loading={completingDeliveryId !== null}
+        error={pinError}
+        onClose={() => {
+          if (completingDeliveryId !== null) return;
+
+          setPinModalOpen(false);
+          setSelectedDeliveryId(null);
+          setDeliveryPin("");
+          setPinError("");
+        }}
+        onConfirm={async (pin) => {
+          if (selectedDeliveryId === null) return;
+
+          await submitDeliveryConfirmation(selectedDeliveryId, pin);
+        }}
+      />
     </div>
   );
 }
